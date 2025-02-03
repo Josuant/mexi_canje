@@ -1,0 +1,11 @@
+{
+    "products": [
+      {
+        "id": "1",
+        "name": "Jarritos",
+        "imageUrl": "https://jarritosmexico.com/img/logo.png",
+        "category": "Bebidas",
+        "website": "https://jarritosmexico.com/"
+      }
+    ]
+  }
