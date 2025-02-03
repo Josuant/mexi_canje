@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:mexi_canje/providers/favorite_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/product.dart';
@@ -19,23 +20,23 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FavoriteProvider _favoriteProvider = FavoriteProvider();
 
-  final List<String> _categories = [
-    'Todos',
-    'Alimentos',
-    'Bebidas',
-    'Ropa',
-    'Tecnología',
-    'Hogar'
-  ];
+  List<String> _categories = [];
 
   @override
   void initState() {
     super.initState();
-    _loadProducts();
+    _loadCategories();
+    _loadProducts('');
   }
 
-  Future<void> _loadProducts() async {
-    final products = await _apiService.getProducts();
+  Future<void> _loadCategories() async {
+    _categories = await _apiService.getCategories();
+    _categories.insert(0, 'Todos');
+    setState(() {});
+  }
+
+  Future<void> _loadProducts(String searchTerm, [String? category]) async {
+    final products = await _apiService.getProducts(searchTerm, category);
     _favoriteProvider.loadFavorites();
     setState(() {
       _products = products;
@@ -48,13 +49,30 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedCategory = category;
       if (category == 'Todos') {
-        _filteredProducts = _products;
+        _loadProducts(_searchController.text).then((_) {
+          setState(() {
+            _filteredProducts = _products;
+          });
+        });
       } else {
-        _filteredProducts =
-            _products.where((product) => product.category == category).toList();
+        _filteredProducts = _products
+            .where((product) => product.categories.contains(category))
+            .toList();
       }
       updateFavorites();
     });
+  }
+
+  void searchProduct(String value) {
+    _loadProducts(value, _selectedCategory);
+  }
+
+  void updateFavorites() {
+    _filteredProducts = _filteredProducts.map((product) {
+      final isFavorite =
+          _favoriteProvider.favorites.any((p) => p.id == product.id);
+      return product.copyWith(isFavorite: isFavorite);
+    }).toList();
   }
 
   void _launchURL(String url) async {
@@ -146,7 +164,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             : Colors.black,
                       ),
                       onSelected: (selected) {
-                        _filterProducts(_categories[index]);
+                        if (selected) {
+                          _filterProducts(_categories[index]);
+                        } else {
+                          _filterProducts('Todos');
+                        }
                       },
                     ),
                   );
@@ -176,7 +198,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     onFavPressed: () => _favoriteProvider.toggleFavorite(
                       _filteredProducts[index],
                     ),
-                  );
+                  )
+                      .animate() // Inicia la configuración de la animación
+                      .fadeIn(duration: 300.ms) // Animación de aparición
+                      .slideX(
+                        begin: 0.1,
+                        end: 0,
+                        curve: Curves.easeOut,
+                      )
+                      .scale(
+                        begin: Offset(0.9, 0.9),
+                        end: Offset(1, 1),
+                      );
                 },
               ),
             ),
@@ -184,24 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-
-  void searchProduct(String value) {
-    setState(() {
-      _filteredProducts = _products
-          .where((product) =>
-              product.name.toLowerCase().contains(value.toLowerCase()))
-          .toList();
-      updateFavorites();
-    });
-  }
-
-  void updateFavorites() {
-    _filteredProducts = _filteredProducts.map((product) {
-      final isFavorite =
-          _favoriteProvider.favorites.any((p) => p.id == product.id);
-      return product.copyWith(isFavorite: isFavorite);
-    }).toList();
   }
 
   void _showMap(Product filteredProduct) async {

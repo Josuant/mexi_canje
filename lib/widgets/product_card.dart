@@ -32,10 +32,23 @@ class ProductCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(15)),
-                  child: Image.network(
-                    product.imageUrl,
-                    fit: BoxFit.cover,
-                  ),
+                  child: product.imageUrl.isNotEmpty
+                      ? Image.network(
+                          product.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.broken_image,
+                              size: 50,
+                              color: Colors.grey,
+                            );
+                          },
+                        )
+                      : const Icon(
+                          Icons.image,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
                 ),
                 Positioned(
                   top: 8,

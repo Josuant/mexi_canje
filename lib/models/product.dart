@@ -4,7 +4,7 @@ class Product {
   final String id;
   final String name;
   final String imageUrl;
-  final String category;
+  final List<String> categories;
   final String website;
   final bool? isFavorite;
 
@@ -12,29 +12,29 @@ class Product {
     required this.id,
     required this.name,
     required this.imageUrl,
-    required this.category,
+    required this.categories,
     required this.website,
     required this.isFavorite,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
-      name: json['name'],
-      imageUrl: json['imageUrl'],
-      category: json['category'],
-      website: json['website'],
+      id: json['id_empresa'].toString(),
+      name: json['nombre_empresa'],
+      imageUrl: json['url_imagen_empresa'] ?? '',
+      categories: List<String>.from(json['categorias']),
+      website: json['sitio_web_empresa'] ?? '',
       isFavorite: null,
     );
   }
 
-  Map<String, String> toJson() {
+  Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
-      'imageUrl': imageUrl,
-      'category': category,
-      'website': website,
+      'id_empresa': id,
+      'nombre_empresa': name,
+      'url_imagen_empresa': imageUrl,
+      'categorias': categories,
+      'sitio_web_empresa': website,
     };
   }
 
@@ -42,7 +42,7 @@ class Product {
     return Product(
       id: id,
       name: name,
-      category: category,
+      categories: categories,
       website: website,
       isFavorite: isFavorite ?? this.isFavorite,
       imageUrl: imageUrl,

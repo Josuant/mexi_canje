@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mexi_canje/screens/home_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-const supabaseUrl = 'https://musgzpkwlzyktprsutdp.supabase.co';
-const supabaseKey = String.fromEnvironment('SUPABASE_KEY');
-
 Future<void> main() async {
-  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+  await dotenv.load();
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_API_KEY']!,
+  );
   runApp(const MainApp());
 }
 
