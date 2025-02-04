@@ -1,3 +1,4 @@
+import 'package:mexi_canje/models/notification.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product.dart';
 
@@ -23,5 +24,10 @@ class ApiService {
   Future<List<String>> getCategories() async {
     final dataS = await supabase.rpc('obtener_todas_categorias');
     return List<String>.from(dataS);
+  }
+
+  Future<List<NotificationApp>> getNotifications() async {
+    final data = await supabase.from('app_updates').select();
+    return data.map((json) => NotificationApp.fromJson(json)).toList();
   }
 }

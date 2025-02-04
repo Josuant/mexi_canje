@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:mexi_canje/models/notification.dart';
 import 'package:mexi_canje/providers/favorite_provider.dart';
+import 'package:mexi_canje/widgets/native_ad_card.dart';
+import 'package:solar_icons/solar_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
@@ -8,11 +11,14 @@ import '../utils/constants.dart';
 import '../widgets/product_card.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ApiService _apiService = ApiService();
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
@@ -21,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FavoriteProvider _favoriteProvider = FavoriteProvider();
 
   List<String> _categories = [];
+  List<NotificationApp> _notifications = [];
 
   @override
   void initState() {
@@ -31,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadCategories() async {
     _categories = await _apiService.getCategories();
+    _notifications = await _apiService.getNotifications();
     _categories.insert(0, 'Todos');
     setState(() {});
   }
@@ -79,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
-    } else {
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('No se pudo abrir la URL: $url')),
       );
@@ -94,12 +102,17 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     });
     return Scaffold(
-      backgroundColor: Color(0xFFF7F7F7),
+      key: _scaffoldKey,
+      drawer: _buildModernDrawer(),
       appBar: AppBar(
-        backgroundColor: Color(0xFFF7F7F7),
+        backgroundColor: const Color(0xFFF7F7F7),
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.primary),
-          onPressed: () {},
+          icon: const Icon(
+            SolarIconsOutline.hamburgerMenu,
+            color: AppColors.primary,
+            size: 32,
+          ),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         title: const Center(
           child: Text(
@@ -113,8 +126,46 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.notifications, color: AppColors.primary),
-            onPressed: () {},
+            icon: const Icon(
+              SolarIconsOutline.bell,
+              color: AppColors.primary,
+              size: 32,
+            ),
+            onPressed: () {
+              _apiService.getNotifications();
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    backgroundColor: AppColors.primary,
+                    title: const Text('Notificaciones',
+                        style: TextStyle(color: Colors.white)),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: _notifications
+                          .map(
+                            (notification) => ListTile(
+                              title: Text(notification.title,
+                                  style: const TextStyle(color: Colors.white)),
+                              subtitle: Text(notification.description,
+                                  style: const TextStyle(color: Colors.white)),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cerrar',
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
@@ -127,7 +178,10 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Buscar productos...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const Icon(
+                  SolarIconsOutline.magnifier,
+                  size: 32,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none,
@@ -179,40 +233,54 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Grid de productos
             Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 6,
-                  mainAxisSpacing: 6,
-                  childAspectRatio: 0.75,
-                ),
-                itemCount: _filteredProducts.length,
-                itemBuilder: (context, index) {
-                  return ProductCard(
-                    product: _filteredProducts[index],
-                    onMapPressed: () {
-                      _showMap(_filteredProducts[index]);
-                    },
-                    onWebPressed: () =>
-                        _launchURL(_filteredProducts[index].website),
-                    onFavPressed: () => _favoriteProvider.toggleFavorite(
-                      _filteredProducts[index],
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    GridView.builder(
+                      // GridView para los items normales (igual que en Opción 3)
+                      shrinkWrap:
+                          true, // Importante para que el GridView no sea infinito en un Column (igual que en Opción 3)
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Desactivamos el scroll INTERNO del GridView (igual que en Opción 3)
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 6,
+                        childAspectRatio: 0.75,
+                      ),
+                      itemCount: _filteredProducts.length,
+                      itemBuilder: (context, index) {
+                        // Construye un item normal del GridView
+                        return ProductCard(
+                          product: _filteredProducts[index],
+                          onMapPressed: () {
+                            _showMap(_filteredProducts[index]);
+                          },
+                          onWebPressed: () =>
+                              _launchURL(_filteredProducts[index].website),
+                          onFavPressed: () => _favoriteProvider.toggleFavorite(
+                            _filteredProducts[index],
+                          ),
+                        )
+                            .animate() // Inicia la configuración de la animación
+                            .fadeIn(duration: 300.ms) // Animación de aparición
+                            .slideX(
+                              begin: 0.1,
+                              end: 0,
+                              curve: Curves.easeOut,
+                            )
+                            .scale(
+                              begin: const Offset(0.9, 0.9),
+                              end: const Offset(1, 1),
+                            );
+                      },
                     ),
-                  )
-                      .animate() // Inicia la configuración de la animación
-                      .fadeIn(duration: 300.ms) // Animación de aparición
-                      .slideX(
-                        begin: 0.1,
-                        end: 0,
-                        curve: Curves.easeOut,
-                      )
-                      .scale(
-                        begin: Offset(0.9, 0.9),
-                        end: Offset(1, 1),
-                      );
-                },
+                    const NativeAdCard(),
+                  ],
+                ),
               ),
-            ),
+            ), // Anuncio nativo
           ],
         ),
       ),
@@ -225,12 +293,98 @@ class _HomeScreenState extends State<HomeScreen> {
     final Uri uri = Uri.parse(googleMapsUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
-    } else {
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content:
                 Text('No se pudo abrir el mapa para: ${filteredProduct.name}')),
       );
     }
+  }
+
+  Widget _buildModernDrawer() {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: 310,
+        maxWidth: MediaQuery.of(context).size.width * 0.5,
+      ),
+      child: Drawer(
+        elevation: 16,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(30),
+            bottomRight: Radius.circular(30),
+          ),
+        ),
+        child: Container(
+          color: const Color.fromARGB(197, 0, 0, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              _buildDrawerMenuItems(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerMenuItems() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildMenuItem(SolarIconsBold.home, 'Inicio'),
+        _buildMenuItem(SolarIconsBold.heart, 'Favoritos'),
+        _buildMenuItem(SolarIconsBold.code, 'Mi Github'),
+        _buildMenuItem(SolarIconsBold.mailbox, 'Contacto'),
+        _buildMenuItem(SolarIconsBold.file, 'Aviso de Privacidad'),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem(IconData icon, String title) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white54),
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white),
+      ),
+      hoverColor: Colors.white12,
+      onTap: () {
+        Navigator.pop(context);
+        switch (title) {
+          case 'Inicio':
+            setState(() {
+              _filteredProducts = _products;
+
+              updateFavorites();
+            });
+            _filteredProducts = _products;
+            break;
+          case 'Favoritos':
+            setState(() {
+              _filteredProducts = _products.where((product) {
+                return _favoriteProvider.favorites
+                    .any((p) => p.id == product.id);
+              }).toList();
+
+              updateFavorites();
+            });
+            break;
+          case 'Mi Github':
+            _launchURL('https://github.com/Josuant');
+            break;
+          case 'Contacto':
+            _launchURL('mailto:alvarez.nava.antonio@gmail.com');
+            break;
+          case 'Aviso de Privacidad':
+            _launchURL(
+                'https://docs.google.com/document/d/e/2PACX-1vRMDr4s7fVqeUMpwFr8C2r1HTdUj9laqwrhBA_L8X8ederFhdQBYExZCrHZfQQgFi0HAU2Nr7pLFIxH/pub');
+            break;
+        }
+      },
+    );
   }
 }
