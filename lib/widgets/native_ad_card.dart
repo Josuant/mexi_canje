@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mexi_canje/providers/products_provider.dart';
+import 'package:mexi_canje/utils/constants.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class NativeAdCard extends StatefulWidget {
@@ -41,76 +43,66 @@ class _NativeAdCardState extends State<NativeAdCard> {
     });
   }
 
+  /// Loads a native ad.
   void _loadAd() {
-    setState(() {
-      _isAdLoaded = false;
-    });
-
     _nativeAd = NativeAd(
-      adUnitId: _adUnitId,
-      nativeTemplateStyle: NativeTemplateStyle(
-        templateType: TemplateType.medium,
-        callToActionTextStyle: NativeTemplateTextStyle(
-          textColor: Colors.white,
-          backgroundColor: const Color.fromARGB(255, 158, 26, 14),
-          style: NativeTemplateFontStyle.bold,
-          size: 12,
-        ),
-        primaryTextStyle: NativeTemplateTextStyle(
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          style: NativeTemplateFontStyle.normal,
-          size: 16,
-        ),
-        secondaryTextStyle: NativeTemplateTextStyle(
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          style: NativeTemplateFontStyle.normal,
-          size: 16,
-        ),
-        tertiaryTextStyle: NativeTemplateTextStyle(
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          style: NativeTemplateFontStyle.normal,
-          size: 16,
-        ),
-        mainBackgroundColor: Colors.white,
-        cornerRadius: 15.0,
-      ),
-      factoryId: 'adFactoryExample', // Add a factoryId
-      listener: NativeAdListener(
-        onAdLoaded: (ad) {
-          setState(() {
-            _nativeAd = ad as NativeAd;
-            _isAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-          setState(() {
-            _nativeAd = null;
+        adUnitId: _adUnitId,
+        listener: NativeAdListener(
+          onAdLoaded: (ad) {
+            if (kDebugMode) {
+              print('$NativeAd loaded.');
+            }
+            setState(() {
+              _isAdLoaded = true;
+            });
+          },
+          onAdFailedToLoad: (ad, error) {
+            // Dispose the ad here to free resources.
             _isAdLoaded = false;
-          });
-        },
-        onAdImpression: (ad) {
-          debugPrint('$NativeAd impression occurred');
-        },
-        onAdClicked: (ad) {
-          debugPrint('$NativeAd was clicked');
-        },
-        onAdClosed: (ad) {
-          debugPrint('$NativeAd closed');
-        },
-        onAdOpened: (ad) {
-          debugPrint('$NativeAd opened');
-        },
-      ),
-      request: const AdRequest(),
-      nativeAdOptions: NativeAdOptions(
-        adChoicesPlacement: AdChoicesPlacement
-            .bottomRightCorner, // Ejemplo de AdChoices placement
-      ),
-    )..load();
+            ad.dispose();
+          },
+          // Called when a click is recorded for a NativeAd.
+          onAdClicked: (ad) {},
+          // Called when an impression occurs on the ad.
+          onAdImpression: (ad) {},
+          // Called when an ad removes an overlay that covers the screen.
+          onAdClosed: (ad) {},
+          // Called when an ad opens an overlay that covers the screen.
+          onAdOpened: (ad) {},
+          // For iOS only. Called before dismissing a full screen view
+          onAdWillDismissScreen: (ad) {},
+          // Called when an ad receives revenue value.
+          onPaidEvent: (ad, valueMicros, precision, currencyCode) {},
+        ),
+        request: const AdRequest(),
+        // Styling
+        nativeTemplateStyle: NativeTemplateStyle(
+            // Required: Choose a template.
+            templateType: TemplateType.medium,
+            // Optional: Customize the ad's style.
+            mainBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
+            cornerRadius: 10.0,
+            callToActionTextStyle: NativeTemplateTextStyle(
+                textColor: AppColors.background,
+                backgroundColor: AppColors.primary,
+                style: NativeTemplateFontStyle.monospace,
+                size: 16.0),
+            primaryTextStyle: NativeTemplateTextStyle(
+                textColor: AppColors.primary,
+                backgroundColor: AppColors.background,
+                style: NativeTemplateFontStyle.italic,
+                size: 16.0),
+            secondaryTextStyle: NativeTemplateTextStyle(
+                textColor: AppColors.primary,
+                backgroundColor: AppColors.background,
+                style: NativeTemplateFontStyle.bold,
+                size: 16.0),
+            tertiaryTextStyle: NativeTemplateTextStyle(
+                textColor: AppColors.primary,
+                backgroundColor: AppColors.background,
+                style: NativeTemplateFontStyle.normal,
+                size: 16.0)))
+      ..load();
   }
 
   @override
@@ -122,49 +114,29 @@ class _NativeAdCardState extends State<NativeAdCard> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        elevation: 4.0,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-        semanticContainer: true,
-        clipBehavior: Clip.antiAliasWithSaveLayer,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_isAdLoaded && _nativeAd != null)
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minWidth: 320, // minimum recommended width
-                    minHeight: 90, // minimum recommended height
-                    maxWidth: 400,
-                    maxHeight: 350,
-                  ),
-                  child: AdWidget(ad: _nativeAd!),
-                ), // Función para construir la card del anuncio
-              if (!_isAdLoaded)
-                _nativeAd == null
-                    ? const SizedBox(
-                        height: 100, // Altura placeholder mientras carga
-                        child: Center(
-                            child: Icon(
-                          SolarIconsBold.linkBroken,
-                          size: 48,
-                          color: Color.fromARGB(179, 160, 160, 160),
-                        )),
-                      )
-                    : const SizedBox(
-                        height: 100, // Altura placeholder mientras carga
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-            ],
-          ),
-        ),
+    return Container(
+      decoration: AppStyles.mexiDecoration,
+      constraints: const BoxConstraints(
+        minWidth: 320, // minimum recommended width
+        minHeight: 320, // minimum recommended height
+        maxWidth: 400,
+        maxHeight: 400,
       ),
+      child: _nativeAd != null && _isAdLoaded
+          ? AdWidget(ad: _nativeAd!)
+          : _isAdLoaded == false
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : const SizedBox(
+                  height: 100,
+                  child: Center(
+                      child: Icon(
+                    SolarIconsBold.linkBroken,
+                    size: 48,
+                    color: Color.fromARGB(179, 160, 160, 160),
+                  )),
+                ),
     );
   }
 }

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:mexi_canje/models/notification.dart';
 import 'package:mexi_canje/providers/favorite_provider.dart';
 import 'package:mexi_canje/providers/products_provider.dart';
-import 'package:mexi_canje/widgets/native_ad_card.dart';
+import 'package:mexi_canje/widgets/category_filter.dart';
+import 'package:mexi_canje/widgets/contents/products_content.dart';
+import 'package:mexi_canje/widgets/mexi_bottom_bar.dart';
+import 'package:mexi_canje/widgets/search_bar.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/product.dart';
 import '../utils/constants.dart';
-import '../widgets/product_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -106,194 +107,68 @@ class HomeScreenState extends State<HomeScreen> {
       });
     });
     return Scaffold(
+      backgroundColor: AppColors.background,
       key: _scaffoldKey,
-      drawer: _buildModernDrawer(),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F7F7),
-        leading: IconButton(
-          icon: const Icon(
-            SolarIconsOutline.hamburgerMenu,
-            color: AppColors.primary,
-            size: 32,
-          ),
-          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        ),
-        title: const Center(
-          child: Text(
-            'MexiCanje',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              SolarIconsOutline.bell,
-              color: AppColors.primary,
-              size: 32,
-            ),
-            onPressed: () {
-              _loadNotifications();
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    backgroundColor: AppColors.primary,
-                    title: const Text('Notificaciones',
-                        style: TextStyle(color: Colors.white)),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: _notifications
-                          .map(
-                            (notification) => ListTile(
-                              title: Text(notification.title,
-                                  style: const TextStyle(color: Colors.white)),
-                              subtitle: Text(notification.description,
-                                  style: const TextStyle(color: Colors.white)),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Cerrar',
-                            style: TextStyle(color: Colors.white)),
-                      ),
-                    ],
-                  );
-                },
-              );
+        backgroundColor: AppColors.background,
+        toolbarHeight: 0.0,
+      ),
+      bottomNavigationBar: MexiBottomBar(),
+      body: Column(
+        verticalDirection: VerticalDirection.up,
+        children: [
+          // Grid de productos
+          ProductsContent(
+            productsProvider: _productsProvider,
+            filteredProducts: _filteredProducts,
+            onShowMap: (String productName) {
+              final product =
+                  _filteredProducts.firstWhere((p) => p.name == productName);
+              _showMap(product);
             },
+            onWebPressed: _launchURL,
+            onFavPressed: (index) {
+              final product = _filteredProducts[index];
+              _favoriteProvider.toggleFavorite(product);
+            },
+          ),
+          // Barra de búsqueda
+          Container(
+            padding:
+                const EdgeInsets.only(left: 25, right: 25, top: 25, bottom: 25),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+            ),
+            child: Column(
+              spacing: 16.0,
+              children: [
+                MexiSearchBar(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    searchProduct(value);
+                  },
+                ),
+
+                // Filtros de categoría
+                CategoryFilter(
+                  categories: _categories,
+                  onCategorySelected: _onCategorySelected,
+                  selectedCategory: _selectedCategory,
+                ),
+              ],
+            ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Barra de búsqueda
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar productos...',
-                prefixIcon: const Icon(
-                  SolarIconsOutline.magnifier,
-                  size: 32,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-              onChanged: (value) {
-                searchProduct(value);
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Filtros de categoría
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _categories.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: ChoiceChip(
-                      label: Text(_categories[index]),
-                      selected: _selectedCategory == _categories[index],
-                      selectedColor: AppColors.primary,
-                      showCheckmark: false,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      labelStyle: TextStyle(
-                        color: _selectedCategory == _categories[index]
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                      onSelected: (selected) {
-                        if (selected) {
-                          _filterProducts(_categories[index]);
-                        } else {
-                          _filterProducts('Todos');
-                        }
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Grid de productos
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    GridView.builder(
-                      // GridView para los items normales (igual que en Opción 3)
-                      shrinkWrap:
-                          true, // Importante para que el GridView no sea infinito en un Column (igual que en Opción 3)
-                      physics:
-                          const NeverScrollableScrollPhysics(), // Desactivamos el scroll INTERNO del GridView (igual que en Opción 3)
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount:
-                            MediaQuery.of(context).size.width > 600 ? 4 : 2,
-                        crossAxisSpacing: 6,
-                        mainAxisSpacing: 6,
-                        childAspectRatio:
-                            MediaQuery.of(context).size.width > 600
-                                ? 0.6
-                                : 0.75,
-                      ),
-                      itemCount: _filteredProducts.length,
-                      itemBuilder: (context, index) {
-                        // Construye un item normal del GridView
-                        return ProductCard(
-                          product: _filteredProducts[index],
-                          onMapPressed: () {
-                            _showMap(_filteredProducts[index]);
-                          },
-                          onWebPressed: () =>
-                              _launchURL(_filteredProducts[index].website),
-                          onFavPressed: () => _favoriteProvider.toggleFavorite(
-                            _filteredProducts[index],
-                          ),
-                        )
-                            .animate() // Inicia la configuración de la animación
-                            .fadeIn(duration: 300.ms) // Animación de aparición
-                            .slideX(
-                              begin: 0.1,
-                              end: 0,
-                              curve: Curves.easeOut,
-                            )
-                            .scale(
-                              begin: const Offset(0.9, 0.9),
-                              end: const Offset(1, 1),
-                            );
-                      },
-                    ),
-                    NativeAdCard(
-                      productsProvider: _productsProvider,
-                    ), // Anuncio nativo
-                  ],
-                ),
-              ),
-            ), // Anuncio nativo
-          ],
-        ),
-      ),
     );
+  }
+
+  _onCategorySelected(selected, index) {
+    if (selected) {
+      _filterProducts(_categories[index]);
+    } else {
+      _filterProducts('Todos');
+    }
   }
 
   void _loadNotifications() {
