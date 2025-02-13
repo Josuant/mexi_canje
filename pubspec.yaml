@@ -1,30 +1,30 @@
 name: mexi_canje
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0
+version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.4
+  sdk: ^3.6.1
 
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.13.5          # Para llamadas API
+  http: ^1.3.0          # Para llamadas API
   provider: ^6.0.5       # Gestión de estado
   shared_preferences: ^2.2.0 # Guardar favoritos
   url_launcher: ^6.1.7   # Abrir sitios web
   cached_network_image: ^3.2.3 # Mostrar imágenes desde URL
-  flutter_slidable: ^2.0.0 # Para editar/eliminar favoritos
+  flutter_slidable: ^4.0.0 # Para editar/eliminar favoritos
   supabase_flutter: ^2.8.3
   flutter_dotenv: ^5.2.1
   flutter_animate: ^4.1.1+1
-  google_mobile_ads: ^5.3.1
   solar_icons: ^0.0.5
+  google_mobile_ads: ^5.3.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
   
 
 flutter:

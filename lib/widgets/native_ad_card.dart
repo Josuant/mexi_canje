@@ -2,10 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:mexi_canje/providers/products_provider.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class NativeAdCard extends StatefulWidget {
-  const NativeAdCard({super.key});
+  final ProductsProvider productsProvider;
+
+  const NativeAdCard({super.key, required this.productsProvider});
 
   @override
   State<NativeAdCard> createState() => _NativeAdCardState();
@@ -15,15 +18,27 @@ class _NativeAdCardState extends State<NativeAdCard> {
   NativeAd? _nativeAd;
   bool _isAdLoaded = false;
 
-  // TODO: replace this test ad unit with your own ad unit.
+  // 	ca-app-pub-3940256099942544/2247696110
+
+  //Test
   final String _adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-4173857408990563/2461879943'
+      ? 'ca-app-pub-3940256099942544/2247696110'
       : 'ca-app-pub-3940256099942544/3986624511';
+
+  //Live
+  // final String _adUnitId = Platform.isAndroid
+  //     ? 'ca-app-pub-4173857408990563/2461879943'
+  //     : 'ca-app-pub-3940256099942544/3986624511';
 
   @override
   void initState() {
     super.initState();
     _loadAd();
+    widget.productsProvider.addListener(() {
+      setState(() {
+        _loadAd();
+      });
+    });
   }
 
   void _loadAd() {
@@ -37,7 +52,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
         templateType: TemplateType.medium,
         callToActionTextStyle: NativeTemplateTextStyle(
           textColor: Colors.white,
-          backgroundColor: Colors.blue,
+          backgroundColor: const Color.fromARGB(255, 158, 26, 14),
           style: NativeTemplateFontStyle.bold,
           size: 12,
         ),
@@ -101,6 +116,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
   @override
   void dispose() {
     _nativeAd?.dispose();
+    widget.productsProvider.dispose();
     super.dispose();
   }
 
@@ -126,7 +142,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
                     minWidth: 320, // minimum recommended width
                     minHeight: 90, // minimum recommended height
                     maxWidth: 400,
-                    maxHeight: 200,
+                    maxHeight: 350,
                   ),
                   child: AdWidget(ad: _nativeAd!),
                 ), // Función para construir la card del anuncio

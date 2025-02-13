@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:mexi_canje/models/notification.dart';
 import 'package:mexi_canje/providers/favorite_provider.dart';
+import 'package:mexi_canje/providers/products_provider.dart';
 import 'package:mexi_canje/widgets/native_ad_card.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/product.dart';
-import '../services/api_service.dart';
 import '../utils/constants.dart';
 import '../widgets/product_card.dart';
 
@@ -19,12 +19,12 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final ApiService _apiService = ApiService();
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
   String _selectedCategory = 'Todos';
   final TextEditingController _searchController = TextEditingController();
   final FavoriteProvider _favoriteProvider = FavoriteProvider();
+  final ProductsProvider _productsProvider = ProductsProvider();
 
   List<String> _categories = [];
   List<NotificationApp> _notifications = [];
@@ -33,18 +33,21 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadCategories();
+    _loadNotifications();
     _loadProducts('');
   }
 
   Future<void> _loadCategories() async {
-    _categories = await _apiService.getCategories();
-    _notifications = await _apiService.getNotifications();
-    _categories.insert(0, 'Todos');
-    setState(() {});
+    await _productsProvider.getCategories();
+    setState(() {
+      _categories = _productsProvider.categories;
+      _categories.insert(0, 'Todos');
+    });
   }
 
   Future<void> _loadProducts(String searchTerm, [String? category]) async {
-    final products = await _apiService.getProducts(searchTerm, category);
+    await _productsProvider.getProducts(searchTerm, category);
+    final products = _productsProvider.items;
     _favoriteProvider.loadFavorites();
     setState(() {
       _products = products;
@@ -67,6 +70,7 @@ class HomeScreenState extends State<HomeScreen> {
             .where((product) => product.categories.contains(category))
             .toList();
       }
+      _productsProvider.notifyChanges();
       updateFavorites();
     });
   }
@@ -132,7 +136,7 @@ class HomeScreenState extends State<HomeScreen> {
               size: 32,
             ),
             onPressed: () {
-              _apiService.getNotifications();
+              _loadNotifications();
               showDialog(
                 context: context,
                 builder: (context) {
@@ -242,12 +246,15 @@ class HomeScreenState extends State<HomeScreen> {
                           true, // Importante para que el GridView no sea infinito en un Column (igual que en Opción 3)
                       physics:
                           const NeverScrollableScrollPhysics(), // Desactivamos el scroll INTERNO del GridView (igual que en Opción 3)
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount:
+                            MediaQuery.of(context).size.width > 600 ? 4 : 2,
                         crossAxisSpacing: 6,
                         mainAxisSpacing: 6,
-                        childAspectRatio: 0.75,
+                        childAspectRatio:
+                            MediaQuery.of(context).size.width > 600
+                                ? 0.6
+                                : 0.75,
                       ),
                       itemCount: _filteredProducts.length,
                       itemBuilder: (context, index) {
@@ -276,7 +283,9 @@ class HomeScreenState extends State<HomeScreen> {
                             );
                       },
                     ),
-                    const NativeAdCard(),
+                    NativeAdCard(
+                      productsProvider: _productsProvider,
+                    ), // Anuncio nativo
                   ],
                 ),
               ),
@@ -285,6 +294,13 @@ class HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  void _loadNotifications() {
+    _productsProvider.getNotifications();
+    setState(() {
+      _notifications = _productsProvider.notifications;
+    });
   }
 
   void _showMap(Product filteredProduct) async {
@@ -356,9 +372,12 @@ class HomeScreenState extends State<HomeScreen> {
         Navigator.pop(context);
         switch (title) {
           case 'Inicio':
+            _productsProvider.getProducts('');
             setState(() {
+              _selectedCategory = 'Todos';
+              _products = _productsProvider.items;
               _filteredProducts = _products;
-
+              _productsProvider.notifyChanges();
               updateFavorites();
             });
             _filteredProducts = _products;
@@ -369,7 +388,7 @@ class HomeScreenState extends State<HomeScreen> {
                 return _favoriteProvider.favorites
                     .any((p) => p.id == product.id);
               }).toList();
-
+              _productsProvider.notifyChanges();
               updateFavorites();
             });
             break;
