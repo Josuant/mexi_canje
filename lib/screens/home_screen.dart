@@ -3,10 +3,12 @@ import 'package:mexi_canje/models/notification.dart';
 import 'package:mexi_canje/providers/favorite_provider.dart';
 import 'package:mexi_canje/providers/products_provider.dart';
 import 'package:mexi_canje/widgets/category_filter.dart';
+import 'package:mexi_canje/widgets/contents/categories_content.dart';
+import 'package:mexi_canje/widgets/contents/mexi_content.dart';
 import 'package:mexi_canje/widgets/contents/products_content.dart';
 import 'package:mexi_canje/widgets/mexi_bottom_bar.dart';
+import 'package:mexi_canje/widgets/native_ad_card.dart';
 import 'package:mexi_canje/widgets/search_bar.dart';
-import 'package:solar_icons/solar_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/product.dart';
 import '../utils/constants.dart';
@@ -20,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final ScrollController _scrollController = ScrollController();
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
   String _selectedCategory = 'Todos';
@@ -27,8 +30,12 @@ class HomeScreenState extends State<HomeScreen> {
   final FavoriteProvider _favoriteProvider = FavoriteProvider();
   final ProductsProvider _productsProvider = ProductsProvider();
 
-  List<String> _categories = [];
+  List<Map<String, String>> _categories = [];
   List<NotificationApp> _notifications = [];
+  bool _favorites = false;
+  int _index = 0;
+
+  bool _showCategories = true;
 
   @override
   void initState() {
@@ -42,7 +49,6 @@ class HomeScreenState extends State<HomeScreen> {
     await _productsProvider.getCategories();
     setState(() {
       _categories = _productsProvider.categories;
-      _categories.insert(0, 'Todos');
     });
   }
 
@@ -77,6 +83,8 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   void searchProduct(String value) {
+    _showCategories = false;
+    _navigateTo(0);
     _loadProducts(value, _selectedCategory);
   }
 
@@ -113,35 +121,78 @@ class HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.background,
         toolbarHeight: 0.0,
       ),
-      bottomNavigationBar: MexiBottomBar(),
+      bottomNavigationBar: MexiBottomBar(
+        onItemTapped: (index) {
+          _showCategories = true;
+          _navigateTo(index);
+        },
+        selectedIndex: _index,
+      ),
       body: Column(
         verticalDirection: VerticalDirection.up,
         children: [
-          // Grid de productos
-          ProductsContent(
-            productsProvider: _productsProvider,
-            filteredProducts: _filteredProducts,
-            onShowMap: (String productName) {
-              final product =
-                  _filteredProducts.firstWhere((p) => p.name == productName);
-              _showMap(product);
-            },
-            onWebPressed: _launchURL,
-            onFavPressed: (index) {
-              final product = _filteredProducts[index];
-              _favoriteProvider.toggleFavorite(product);
-            },
+          // Contenido
+          Expanded(
+              child: SingleChildScrollView(
+                  controller: _scrollController,
+                  clipBehavior: Clip.none,
+                  child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                      ),
+                      padding: const EdgeInsets.only(left: 25, right: 25),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 35,
+                          children: [
+                            ..._getContent(_index).getContents(context),
+                            Text(
+                              "Espacio publicitario",
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                fontSize: 26,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            NativeAdCard(
+                              productsProvider: _productsProvider,
+                            ),
+                          ])))),
+
+          SizedBox(
+            height: 20,
+            width: 20,
           ),
           // Barra de búsqueda
           Container(
+            clipBehavior: Clip.antiAlias,
             padding:
-                const EdgeInsets.only(left: 25, right: 25, top: 25, bottom: 25),
+                const EdgeInsets.only(left: 25, right: 25, top: 10, bottom: 10),
             decoration: BoxDecoration(
-              color: AppColors.background,
-            ),
+                color: AppColors.background,
+                borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30))),
             child: Column(
-              spacing: 16.0,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Text(
+                  "Mexicanje",
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.secondary,
+                      height: 1),
+                ),
+                Text("Encuentra productos mexicanos",
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    )),
+                SizedBox(height: 15),
                 MexiSearchBar(
                   controller: _searchController,
                   onChanged: (value) {
@@ -150,11 +201,42 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
 
                 // Filtros de categoría
-                CategoryFilter(
-                  categories: _categories,
-                  onCategorySelected: _onCategorySelected,
-                  selectedCategory: _selectedCategory,
-                ),
+
+                _index == 0 && !_showCategories
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 5),
+                        child: CategoryFilter(
+                          categories: _categories
+                              .map((category) =>
+                                  category['nombre_categoria'] ?? 'Todos')
+                              .toList(),
+                          onCategorySelected: _onCategorySelected,
+                          selectedCategory: _selectedCategory,
+                        ),
+                      )
+                    : _index == 1
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 15),
+                            child: Text(
+                              "Favoritos",
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                fontSize: 26,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.only(top: 15),
+                            child: Text(
+                              "Categorías",
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                fontSize: 26,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
               ],
             ),
           ),
@@ -163,9 +245,34 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  ProductsContent getProductsContent() {
+    return ProductsContent(
+      filteredProducts: _filteredProducts,
+      onShowMap: _showMap,
+      onWebPressed: _launchURL,
+      onFavPressed: toggleFav,
+      category: _selectedCategory,
+      favoritesEnabled: _favorites,
+    );
+  }
+
+  CategoriesContent getCategoriesContent() {
+    return CategoriesContent(
+      categories: _categories,
+      onCategorySelected: _onCategorySelected,
+    );
+  }
+
+  toggleFav(index) {
+    final product = _filteredProducts[index];
+    _favoriteProvider.toggleFavorite(product);
+  }
+
   _onCategorySelected(selected, index) {
+    _showCategories = false;
+    _navigateTo(0);
     if (selected) {
-      _filterProducts(_categories[index]);
+      _filterProducts(_categories[index]['nombre_categoria'] ?? 'Todos');
     } else {
       _filterProducts('Todos');
     }
@@ -178,7 +285,9 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _showMap(Product filteredProduct) async {
+  void _showMap(String productName) async {
+    final filteredProduct =
+        _filteredProducts.firstWhere((p) => p.name == productName);
     final String googleMapsUrl =
         'https://www.google.com/maps/search/?api=1&query=${filteredProduct.name}';
     final Uri uri = Uri.parse(googleMapsUrl);
@@ -193,46 +302,60 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildModernDrawer() {
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: 310,
-        maxWidth: MediaQuery.of(context).size.width * 0.5,
-      ),
-      child: Drawer(
-        elevation: 16,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topRight: Radius.circular(30),
-            bottomRight: Radius.circular(30),
-          ),
-        ),
-        child: Container(
-          color: const Color.fromARGB(197, 0, 0, 0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              _buildDrawerMenuItems(),
-            ],
-          ),
-        ),
-      ),
-    );
+  MexiContent _getContent(int index) {
+    switch (index) {
+      case 0:
+        if (_showCategories) {
+          return getCategoriesContent();
+        } else {
+          return getProductsContent();
+        }
+      case 1:
+        return getProductsContent();
+      default:
+        return getCategoriesContent();
+    }
   }
 
-  Widget _buildDrawerMenuItems() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildMenuItem(SolarIconsBold.home, 'Inicio'),
-        _buildMenuItem(SolarIconsBold.heart, 'Favoritos'),
-        _buildMenuItem(SolarIconsBold.code, 'Mi Github'),
-        _buildMenuItem(SolarIconsBold.mailbox, 'Contacto'),
-        _buildMenuItem(SolarIconsBold.file, 'Aviso de Privacidad'),
-      ],
-    );
+  void _navigateTo(int index) {
+    _scrollController.jumpTo(0);
+    switch (index) {
+      case 0:
+        _productsProvider.getProducts('');
+        setState(() {
+          _selectedCategory = 'Todos';
+          _products = _productsProvider.items;
+          _filteredProducts = _products;
+          _productsProvider.notifyChanges();
+          _favorites = false;
+          updateFavorites();
+        });
+        _filteredProducts = _products;
+        break;
+      case 1:
+        setState(() {
+          _searchController.clear();
+          _selectedCategory = 'Todos';
+          _products = _productsProvider.items;
+          _filteredProducts = _products;
+          _filteredProducts = _products.where((product) {
+            return _favoriteProvider.favorites.any((p) => p.id == product.id);
+          }).toList();
+          _productsProvider.notifyChanges();
+          updateFavorites();
+          _favorites = true;
+        });
+        break;
+      case 5:
+        break;
+      case 6:
+        _launchURL('https://github.com/Josuant');
+        break;
+      case 7:
+        _launchURL('mailto:alvarez.nava.antonio@gmail.com');
+        break;
+    }
+    _index = index;
   }
 
   Widget _buildMenuItem(IconData icon, String title) {

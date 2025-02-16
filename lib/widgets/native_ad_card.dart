@@ -37,9 +37,11 @@ class _NativeAdCardState extends State<NativeAdCard> {
     super.initState();
     _loadAd();
     widget.productsProvider.addListener(() {
-      setState(() {
-        _loadAd();
-      });
+      if (mounted) {
+        setState(() {
+          _loadAd();
+        });
+      }
     });
   }
 
@@ -59,7 +61,6 @@ class _NativeAdCardState extends State<NativeAdCard> {
           onAdFailedToLoad: (ad, error) {
             // Dispose the ad here to free resources.
             _isAdLoaded = false;
-            ad.dispose();
           },
           // Called when a click is recorded for a NativeAd.
           onAdClicked: (ad) {},
@@ -78,7 +79,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
         // Styling
         nativeTemplateStyle: NativeTemplateStyle(
             // Required: Choose a template.
-            templateType: TemplateType.medium,
+            templateType: TemplateType.small,
             // Optional: Customize the ad's style.
             mainBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
             cornerRadius: 10.0,
@@ -108,19 +109,19 @@ class _NativeAdCardState extends State<NativeAdCard> {
   @override
   void dispose() {
     _nativeAd?.dispose();
-    widget.productsProvider.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(15.0),
       decoration: AppStyles.mexiDecoration,
       constraints: const BoxConstraints(
         minWidth: 320, // minimum recommended width
-        minHeight: 320, // minimum recommended height
+        minHeight: 90, // minimum recommended height
         maxWidth: 400,
-        maxHeight: 400,
+        maxHeight: 200,
       ),
       child: _nativeAd != null && _isAdLoaded
           ? AdWidget(ad: _nativeAd!)

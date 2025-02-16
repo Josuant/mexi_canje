@@ -5,8 +5,9 @@ class CategoryFilter extends StatelessWidget {
   final List<String> categories;
   final Function(bool, int) onCategorySelected;
   final String selectedCategory;
+  final ScrollController _scrollController = ScrollController();
 
-  const CategoryFilter(
+  CategoryFilter(
       {super.key,
       required this.categories,
       required this.onCategorySelected,
@@ -18,11 +19,13 @@ class CategoryFilter extends StatelessWidget {
       height: 50,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
         itemCount: categories.length,
         itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: ChoiceChip(
+                elevation: 10.0,
                 label: Text(categories[index]),
                 selected: selectedCategory == categories[index],
                 selectedColor: AppColors.primary,

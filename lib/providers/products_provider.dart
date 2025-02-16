@@ -5,7 +5,7 @@ import 'package:mexi_canje/services/api_service.dart';
 
 class ProductsProvider with ChangeNotifier {
   List<Product> _items = [];
-  List<String> _categories = [];
+  List<Map<String, String>> _categories = [];
   List<NotificationApp> _notifications = [];
 
   final ApiService _apiService = ApiService();
@@ -14,7 +14,7 @@ class ProductsProvider with ChangeNotifier {
     return [..._items];
   }
 
-  List<String> get categories {
+  List<Map<String, String>> get categories {
     return [..._categories];
   }
 

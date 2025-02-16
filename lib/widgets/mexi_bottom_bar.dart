@@ -1,35 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:mexi_canje/utils/constants.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class MexiBottomBar extends StatefulWidget {
-  const MexiBottomBar({super.key});
+  const MexiBottomBar(
+      {super.key, required this.onItemTapped, required this.selectedIndex});
+
+  final Function(int) onItemTapped;
+  final int selectedIndex;
 
   @override
   State<MexiBottomBar> createState() => _MexiBottomBarState();
 }
 
 class _MexiBottomBarState extends State<MexiBottomBar> {
-  int _selectedIndex = 0;
-
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // Handle navigation or actions based on the selected index
-    switch (index) {
-      case 0:
-        print('Home (Inicio) tapped');
-        break;
-      case 1:
-        print('Favorites tapped');
-        break;
-      case 2:
-        print('Notifications tapped');
-        break;
-      case 3:
-        print('Information tapped');
-        break;
-    }
+    widget.onItemTapped(index);
   }
 
   @override
@@ -38,6 +24,7 @@ class _MexiBottomBarState extends State<MexiBottomBar> {
       alignment: Alignment.bottomCenter,
       children: [
         Container(
+          height: 50,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: const BorderRadius.vertical(
@@ -46,101 +33,99 @@ class _MexiBottomBarState extends State<MexiBottomBar> {
           ),
           padding: const EdgeInsets.symmetric(
               vertical: 12, horizontal: 0), // Add some vertical padding
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              _buildBarItem(
-                index: 0,
-                icon: const Icon(Icons.favorite_border,
-                    color: Color(0xFF2EB899)), // Heart icon,
-              ),
-              _buildBarItem(
-                index: 1,
-                icon: const Icon(Icons.favorite_border,
-                    color: Color(0xFF2EB899)), // Heart icon
-              ),
-              _buildBarItem(
-                index: 2,
-                icon: const Icon(Icons.notifications_none,
-                    color: Color(0xFF2EB899)), // Bell icon
-              ),
-              _buildBarItem(
-                index: 3,
-                icon: const Icon(Icons.info_outline,
-                    color: Color(0xFF2EB899)), // Info icon
-              ),
-            ],
-          ),
         ),
         Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
-              _selectedIndex == 0
-                  ? Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 2,
-                        children: [
-                          ElevatedButton.icon(
-                              onPressed: () {
-                                _onItemTapped(0);
-                              },
-                              label: Text('',
-                                  style: TextStyle(color: AppColors.white)),
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStateProperty.all<Color>(
-                                    AppColors.primary),
-                                elevation: WidgetStateProperty.all<double>(2.0),
-                              ),
-                              icon: Icon(
-                                Icons.home,
-                                color: AppColors.white,
-                              )),
-                          IconButton.filled(
-                            iconSize: 45,
-                            onPressed: () => _onItemTapped(0),
-                            color: AppColors.primary,
-
-                            style: ButtonStyle(
-                              elevation: WidgetStateProperty.all<double>(2.0),
-                              backgroundColor: WidgetStateProperty.all<Color>(
-                                  AppColors.primary),
-                            ),
-                            icon: const Icon(Icons.home,
-                                color: AppColors.white), // Home icon
-                          ),
-                          Text(
-                            'Inicio',
-                            style: TextStyle(color: AppColors.primary),
-                          )
-                        ],
-                      ),
-                    )
-                  : SizedBox(
-                      width: 50,
-                    ),
+              _buildBarItem(
+                index: 0,
+                icon: SolarIconsBold.home, // Heart icon
+                text: 'Inicio',
+              ),
+              _buildBarItem(
+                index: 1,
+                icon: SolarIconsBold.heart, // Heart icon
+                text: 'Favoritos',
+              ),
+              _buildBarItem(
+                index: 2,
+                icon: SolarIconsBold.bell, // Bell icon
+                text: 'Avisos',
+              ),
+              _buildBarItem(
+                index: 3,
+                icon: SolarIconsBold.infoCircle, // Info icon
+                text: 'Info',
+              ),
             ]),
       ],
     );
   }
 
-  Widget _buildBarItem({
+  Widget _buildBarItem(
+      {required int index, required IconData icon, required String text}) {
+    if (widget.selectedIndex == index) {
+      return _buildToggleButton(
+          index: index, icon: icon, text: text, selected: true);
+    } else {
+      return _buildToggleButton(
+          index: index, icon: icon, text: text, selected: false);
+    }
+  }
+
+  Widget _buildToggleButton({
     required int index,
-    required Widget icon,
+    required IconData icon,
+    required String text,
+    required bool selected,
   }) {
-    return GestureDetector(
-      onTap: () => _onItemTapped(index),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 16.0), // Add horizontal padding for each item
-        child: icon,
+    return AnimatedContainer(
+      padding: selected
+          ? EdgeInsets.all(6)
+          : EdgeInsets.all(0), // Padding constante para ambos estados
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(50),
+      ),
+      duration: const Duration(milliseconds: 200), // Duración de la animación
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 2,
+        children: [
+          FloatingActionButton(
+            mini:
+                !selected, // mini: true cuando NO está seleccionado, false cuando SÍ
+            backgroundColor: selected ? AppColors.primary : Colors.transparent,
+            elevation: selected ? 10 : 0,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+            onPressed: () {
+              _onItemTapped(index);
+            },
+            child: Icon(
+              icon,
+              size: selected ? 34 : 24,
+              color: selected ? Colors.white : AppColors.gray,
+            ),
+          ),
+          AnimatedContainer(
+            height: selected ? 20 : 0, // Altura para mostrar/ocultar el texto
+            duration: const Duration(milliseconds: 200),
+            curve: Curves
+                .easeInOut, // Curva de animación para suavizar la transición
+            child: AnimatedOpacity(
+              // Para una transición de opacidad más suave del texto
+              opacity: selected ? 1.0 : 0.0,
+              duration: const Duration(
+                  milliseconds: 100), // Duración opacidad más corta
+              child: Text(
+                text,
+                style: TextStyle(color: AppColors.primary),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
