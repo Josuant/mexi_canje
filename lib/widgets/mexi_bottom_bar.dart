@@ -24,41 +24,42 @@ class _MexiBottomBarState extends State<MexiBottomBar> {
       alignment: Alignment.bottomCenter,
       children: [
         Container(
-          height: 50,
+          height: 70,
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20)), // Rounded top corners
+            color: Colors.white, // Rounded top corners
             boxShadow: AppStyles.getBarShadowList,
           ),
           padding: const EdgeInsets.symmetric(
               vertical: 12, horizontal: 0), // Add some vertical padding
         ),
-        Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              _buildBarItem(
-                index: 0,
-                icon: SolarIconsBold.home, // Heart icon
-                text: 'Inicio',
-              ),
-              _buildBarItem(
-                index: 1,
-                icon: SolarIconsBold.heart, // Heart icon
-                text: 'Favoritos',
-              ),
-              _buildBarItem(
-                index: 2,
-                icon: SolarIconsBold.bell, // Bell icon
-                text: 'Avisos',
-              ),
-              _buildBarItem(
-                index: 3,
-                icon: SolarIconsBold.infoCircle, // Info icon
-                text: 'Info',
-              ),
-            ]),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10.0),
+          child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                _buildBarItem(
+                  index: 0,
+                  icon: SolarIconsBold.home, // Heart icon
+                  text: 'Inicio',
+                ),
+                _buildBarItem(
+                  index: 1,
+                  icon: SolarIconsBold.heart, // Heart icon
+                  text: 'Favoritos',
+                ),
+                _buildBarItem(
+                  index: 2,
+                  icon: SolarIconsBold.bell, // Bell icon
+                  text: 'Avisos',
+                ),
+                _buildBarItem(
+                  index: 3,
+                  icon: SolarIconsBold.infoCircle, // Info icon
+                  text: 'Info',
+                ),
+              ]),
+        ),
       ],
     );
   }
@@ -94,8 +95,7 @@ class _MexiBottomBarState extends State<MexiBottomBar> {
         spacing: 2,
         children: [
           FloatingActionButton(
-            mini:
-                !selected, // mini: true cuando NO está seleccionado, false cuando SÍ
+            mini: !selected,
             backgroundColor: selected ? AppColors.primary : Colors.transparent,
             elevation: selected ? 10 : 0,
             shape:

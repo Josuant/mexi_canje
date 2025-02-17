@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:mexi_canje/models/notification.dart';
+import 'package:mexi_canje/models/aviso.dart';
 import 'package:mexi_canje/models/product.dart';
 import 'package:mexi_canje/services/api_service.dart';
 
 class ProductsProvider with ChangeNotifier {
   List<Product> _items = [];
   List<Map<String, String>> _categories = [];
-  List<NotificationApp> _notifications = [];
+  List<Aviso> _notifications = [];
 
   final ApiService _apiService = ApiService();
 
@@ -18,7 +18,7 @@ class ProductsProvider with ChangeNotifier {
     return [..._categories];
   }
 
-  List<NotificationApp> get notifications {
+  List<Aviso> get notifications {
     return [..._notifications];
   }
 

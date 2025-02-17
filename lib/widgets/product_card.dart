@@ -38,7 +38,18 @@ class ProductCard extends StatelessWidget {
                     padding: const EdgeInsets.all(16.0),
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(10.0),
-                        child: Image.network(product.imageUrl)),
+                        child: Image.network(product.imageUrl,
+                            errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            product.categories.isNotEmpty
+                                ? AppIcons.categoryIcons[
+                                        product.categories.first] ??
+                                    SolarIconsBold.cupHot
+                                : SolarIconsBold.linkBroken,
+                            size: 50,
+                            color: Colors.grey,
+                          );
+                        })),
                   )),
                   Positioned(
                     top: 10,
@@ -72,11 +83,11 @@ class ProductCard extends StatelessWidget {
               children: [
                 Text(
                   product.name,
-                  textScaler: TextScaler.linear(0.9),
+                  textScaler: TextScaler.linear(0.8),
                   overflow: TextOverflow.fade,
-                  maxLines: 1,
-                  style: const TextStyle(
-                    fontSize: 24.0,
+                  maxLines: 2,
+                  style: TextStyle(
+                    fontSize: product.name.length > 14 ? 18.0 : 24.0,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -94,14 +105,40 @@ class ProductCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12.0, vertical: 1.0),
                   decoration: BoxDecoration(
-                    color: Colors.teal,
+                    color: product.mexicanidad == "100% Mexicana"
+                        ? AppColors.secondary
+                        : product.mexicanidad ==
+                                "Mexicana con Inversión Extranjera"
+                            ? AppColors.yellow
+                            : product.mexicanidad == "Negocio local"
+                                ? AppColors.primary
+                                : product.mexicanidad ==
+                                        "Distribuidora mexicana de productos extranjeros"
+                                    ? AppColors.orange
+                                    : AppColors.gray,
                     borderRadius: BorderRadius.circular(6.0),
+                    boxShadow: product.mexicanidad == "100% Mexicana" ||
+                            product.mexicanidad == "Negocio local"
+                        ? [
+                            BoxShadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 5),
+                              blurRadius: 4.0,
+                            ),
+                          ]
+                        : [],
                   ),
                   child: Text(
-                    product.id,
-                    style: const TextStyle(
-                      fontSize: 14.0,
-                      color: Colors.white,
+                    product.mexicanidad,
+                    style: TextStyle(
+                      fontSize: product.mexicanidad == "100% Mexicana" ||
+                              product.mexicanidad == "Negocio local"
+                          ? 14.0
+                          : 11.0,
+                      color: product.mexicanidad == "100% Mexicana" ||
+                              product.mexicanidad == "Negocio local"
+                          ? AppColors.white
+                          : Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -125,21 +162,22 @@ class ProductCard extends StatelessWidget {
                               color: AppColors.secondary, size: 28),
                         ),
                       ),
-                      IconButton(
-                        onPressed: onWebPressed,
-                        padding: const EdgeInsets.all(0),
-                        icon: Container(
-                          width: 70,
-                          padding: const EdgeInsets.all(6.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(30.0),
-                            boxShadow: AppStyles.getShadows,
+                      if (product.website.isNotEmpty)
+                        IconButton(
+                          onPressed: onWebPressed,
+                          padding: const EdgeInsets.all(0),
+                          icon: Container(
+                            width: 70,
+                            padding: const EdgeInsets.all(6.0),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(30.0),
+                              boxShadow: AppStyles.getShadows,
+                            ),
+                            child: const Icon(SolarIconsBold.cartLarge,
+                                color: AppColors.white, size: 28),
                           ),
-                          child: const Icon(SolarIconsBold.cartLarge,
-                              color: AppColors.white, size: 28),
                         ),
-                      ),
                     ],
                   ),
                 ),

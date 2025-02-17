@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:mexi_canje/utils/constants.dart'; // Assuming AppStyles is defined here
 import 'package:mexi_canje/widgets/contents/mexi_content.dart';
 import 'package:smooth_corner/smooth_corner.dart';
+import 'package:solar_icons/solar_icons.dart';
+import 'package:shimmer/shimmer.dart';
 
-// --- Reusable CategoryImageContainer Widget ---
 class CategoryImageContainer extends StatelessWidget {
-  final String? imageUrl; // Image URL can be null if data is missing
+  final String? imageUrl;
   final String? categoryName;
   final int? categoryindex;
   final Function(bool, int) onCategorySelected;
@@ -33,41 +34,53 @@ class CategoryImageContainer extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             smoothness: 0.6,
           ),
-        ), // Use your AppStyles decoration
+        ),
         child: imageUrl != null && imageUrl!.isNotEmpty
             ? Image.network(
                 imageUrl!,
                 fit: BoxFit.fill,
-                loadingBuilder: (BuildContext context, Widget child,
-                    ImageChunkEvent? loadingProgress) {
-                  if (loadingProgress == null) return child;
+                errorBuilder: (context, error, stackTrace) {
                   return Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
+                    child: Text(categoryName!),
                   );
                 },
-                errorBuilder: (BuildContext context, Object error,
-                    StackTrace? stackTrace) {
-                  print(
-                      'Error loading image from URL: $imageUrl - Error: $error');
-                  return Center(
-                    child: Text(categoryName!), // Show error icon
+                loadingBuilder: (BuildContext context, Widget child,
+                    ImageChunkEvent? loadingProgress) {
+                  if (loadingProgress == null) {
+                    return child;
+                  }
+                  return Stack(
+                    // Overlay shimmer effect while loading
+                    fit: StackFit.expand,
+                    children: [
+                      _buildShimmerPlaceholder(), // Shimmer placeholder
+                      Opacity(
+                        // Keep the fade-in animation for the actual image
+                        opacity:
+                            0, // Initially hide the image, fade in on frame
+                        child: child,
+                      ),
+                    ],
                   );
                 },
               )
-            : const Center(
-                child: Icon(Icons.image_not_supported_outlined,
-                    color: Colors.grey)), // Placeholder if no URL
+            : Center(
+                child: Icon(SolarIconsOutline.linkBroken, color: Colors.grey)),
+      ),
+    );
+  }
+
+  Widget _buildShimmerPlaceholder() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        color: Colors.grey[300], // Solid color for shimmer base
       ),
     );
   }
 }
 
-// --- Reusable CategoryGrid Widget ---
 class CategoryGrid extends StatelessWidget {
   final List<Map<String, String>> categories;
   final Function(bool, int) onCategorySelected;
@@ -86,9 +99,8 @@ class CategoryGrid extends StatelessWidget {
 
     return GridView.count(
       childAspectRatio: 0.65,
-      physics:
-          const NeverScrollableScrollPhysics(), // Disable GridView's scrolling
-      shrinkWrap: true, // Make GridView take only necessary space
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
       crossAxisCount: 3,
       crossAxisSpacing: 15,
       mainAxisSpacing: 15,
@@ -97,8 +109,7 @@ class CategoryGrid extends StatelessWidget {
         (index) {
           final category = categories[index];
           final imageUrl = category["url_imagen_categoria"];
-          final categoryName = category[
-              "nombre_categoria"]; // Assuming you might want to use category name later
+          final categoryName = category["nombre_categoria"];
 
           return CategoryImageContainer(
             imageUrl: imageUrl,
@@ -112,7 +123,6 @@ class CategoryGrid extends StatelessWidget {
   }
 }
 
-// --- Modified CategoriesContent Widget ---
 class CategoriesContent extends MexiContent {
   final List<Map<String, String>> categories;
   final Function(bool, int) onCategorySelected;

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:mexi_canje/models/notification.dart';
+import 'package:mexi_canje/models/aviso.dart';
 import 'package:mexi_canje/providers/favorite_provider.dart';
 import 'package:mexi_canje/providers/products_provider.dart';
 import 'package:mexi_canje/widgets/category_filter.dart';
+import 'package:mexi_canje/widgets/contents/avisos_content.dart';
 import 'package:mexi_canje/widgets/contents/categories_content.dart';
+import 'package:mexi_canje/widgets/contents/info_content.dart';
 import 'package:mexi_canje/widgets/contents/mexi_content.dart';
 import 'package:mexi_canje/widgets/contents/products_content.dart';
 import 'package:mexi_canje/widgets/mexi_bottom_bar.dart';
@@ -31,9 +33,10 @@ class HomeScreenState extends State<HomeScreen> {
   final ProductsProvider _productsProvider = ProductsProvider();
 
   List<Map<String, String>> _categories = [];
-  List<NotificationApp> _notifications = [];
+  List<Aviso> _notifications = [];
   bool _favorites = false;
   int _index = 0;
+  String _title = "Categorías";
 
   bool _showCategories = true;
 
@@ -96,17 +99,6 @@ class HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
-  void _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo abrir la URL: $url')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     _favoriteProvider.addListener(() {
@@ -131,7 +123,6 @@ class HomeScreenState extends State<HomeScreen> {
       body: Column(
         verticalDirection: VerticalDirection.up,
         children: [
-          // Contenido
           Expanded(
               child: SingleChildScrollView(
                   controller: _scrollController,
@@ -214,29 +205,17 @@ class HomeScreenState extends State<HomeScreen> {
                           selectedCategory: _selectedCategory,
                         ),
                       )
-                    : _index == 1
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 15),
-                            child: Text(
-                              "Favoritos",
-                              textAlign: TextAlign.start,
-                              style: TextStyle(
-                                fontSize: 26,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          )
-                        : Padding(
-                            padding: const EdgeInsets.only(top: 15),
-                            child: Text(
-                              "Categorías",
-                              textAlign: TextAlign.start,
-                              style: TextStyle(
-                                fontSize: 26,
-                                color: AppColors.primary,
-                              ),
-                            ),
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 15),
+                        child: Text(
+                          _title,
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                            fontSize: 26,
+                            color: AppColors.primary,
                           ),
+                        ),
+                      ),
               ],
             ),
           ),
@@ -302,6 +281,17 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo abrir la URL: $url')),
+      );
+    }
+  }
+
   MexiContent _getContent(int index) {
     switch (index) {
       case 0:
@@ -312,6 +302,10 @@ class HomeScreenState extends State<HomeScreen> {
         }
       case 1:
         return getProductsContent();
+      case 2:
+        return AvisosContent(avisos: _notifications);
+      case 3:
+        return InfoContent();
       default:
         return getCategoriesContent();
     }
@@ -323,6 +317,7 @@ class HomeScreenState extends State<HomeScreen> {
       case 0:
         _productsProvider.getProducts('');
         setState(() {
+          _title = "Categorias";
           _selectedCategory = 'Todos';
           _products = _productsProvider.items;
           _filteredProducts = _products;
@@ -334,6 +329,7 @@ class HomeScreenState extends State<HomeScreen> {
         break;
       case 1:
         setState(() {
+          _title = "Favoritos";
           _searchController.clear();
           _selectedCategory = 'Todos';
           _products = _productsProvider.items;
@@ -346,62 +342,18 @@ class HomeScreenState extends State<HomeScreen> {
           _favorites = true;
         });
         break;
-      case 5:
+      case 2:
+        setState(() {
+          _loadNotifications();
+          _title = "Avisos";
+        });
         break;
-      case 6:
-        _launchURL('https://github.com/Josuant');
-        break;
-      case 7:
-        _launchURL('mailto:alvarez.nava.antonio@gmail.com');
+      case 3:
+        setState(() {
+          _title = "Información";
+        });
         break;
     }
     _index = index;
-  }
-
-  Widget _buildMenuItem(IconData icon, String title) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white54),
-      title: Text(
-        title,
-        style: const TextStyle(color: Colors.white),
-      ),
-      hoverColor: Colors.white12,
-      onTap: () {
-        Navigator.pop(context);
-        switch (title) {
-          case 'Inicio':
-            _productsProvider.getProducts('');
-            setState(() {
-              _selectedCategory = 'Todos';
-              _products = _productsProvider.items;
-              _filteredProducts = _products;
-              _productsProvider.notifyChanges();
-              updateFavorites();
-            });
-            _filteredProducts = _products;
-            break;
-          case 'Favoritos':
-            setState(() {
-              _filteredProducts = _products.where((product) {
-                return _favoriteProvider.favorites
-                    .any((p) => p.id == product.id);
-              }).toList();
-              _productsProvider.notifyChanges();
-              updateFavorites();
-            });
-            break;
-          case 'Mi Github':
-            _launchURL('https://github.com/Josuant');
-            break;
-          case 'Contacto':
-            _launchURL('mailto:alvarez.nava.antonio@gmail.com');
-            break;
-          case 'Aviso de Privacidad':
-            _launchURL(
-                'https://docs.google.com/document/d/e/2PACX-1vRMDr4s7fVqeUMpwFr8C2r1HTdUj9laqwrhBA_L8X8ederFhdQBYExZCrHZfQQgFi0HAU2Nr7pLFIxH/pub');
-            break;
-        }
-      },
-    );
   }
 }

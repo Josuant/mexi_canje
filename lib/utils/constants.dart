@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_corner/smooth_corner.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class AppColors {
   static const Color white = Color(0xFFFFFFFF);
@@ -95,4 +96,37 @@ class AppStyles {
       )
     ];
   }
+}
+
+class AppIcons {
+  static const Map<String, IconData> categoryIcons = {
+    'Alimentos': SolarIconsBold.chefHat,
+    'Bebidas': SolarIconsBold.bottle,
+    'Automóviles': SolarIconsBold.cart,
+    'Bienes raíces': SolarIconsBold.home1,
+    'Electrónicos': SolarIconsBold.smartphone,
+    'Hogar': SolarIconsBold.armchair_2,
+    'Jardín': SolarIconsBold.leaf,
+    'Juguetes': SolarIconsBold.gamepad,
+    'Libros': SolarIconsBold.book,
+    'Mascotas': SolarIconsBold.paw,
+    'Moda': SolarIconsBold.bag,
+    'Muebles': SolarIconsBold.chair,
+    'Niños': SolarIconsBold.smileCircle,
+    'Salud y belleza': SolarIconsBold.heart,
+    'Servicios': SolarIconsBold.washingMachine,
+    'Tecnología': SolarIconsBold.laptop,
+    'Viajes': SolarIconsBold.signpost2,
+    'Aerolínea': SolarIconsBold.signpost2,
+    'Finanzas': SolarIconsBold.wallet,
+    'Servicios Financieros': SolarIconsBold.wallet,
+    'Energía': SolarIconsBold.lightbulb,
+    'Telecomunicaciones': SolarIconsBold.smartphone,
+    'Lácteos': SolarIconsBold.cupHot,
+    'Carnes': SolarIconsBold.donutBitten,
+    'Botanas': SolarIconsBold.donutBitten,
+    'Panadería': SolarIconsBold.donutBitten,
+    'Bebidas alcohólicas': SolarIconsBold.bottle,
+    'Retail': SolarIconsBold.shop,
+  };
 }

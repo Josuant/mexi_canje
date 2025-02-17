@@ -5,6 +5,7 @@ class Product {
   final List<String> categories;
   final String website;
   final bool? isFavorite;
+  final String mexicanidad;
 
   Product({
     required this.id,
@@ -13,6 +14,7 @@ class Product {
     required this.categories,
     required this.website,
     required this.isFavorite,
+    required this.mexicanidad,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class Product {
       imageUrl: json['url_imagen_empresa'] ?? '',
       categories: List<String>.from(json['categorias']),
       website: json['sitio_web_empresa'] ?? '',
+      mexicanidad: json['mexicanidad'] ?? '',
       isFavorite: null,
     );
   }
@@ -44,6 +47,7 @@ class Product {
       website: website,
       isFavorite: isFavorite ?? this.isFavorite,
       imageUrl: imageUrl,
+      mexicanidad: mexicanidad,
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:mexi_canje/models/notification.dart';
+import 'package:mexi_canje/models/aviso.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product.dart';
 
@@ -8,10 +8,14 @@ class ApiService {
 
   Future<List<Product>> getProducts(String searchTerm,
       [String? category]) async {
+    if (category == 'Todos') {
+      category = null;
+    }
+
     final List<dynamic>? data = await supabase
-        .rpc('buscar_empresas_relacionadas', params: {
-      'search_term': searchTerm,
-      if (category != null) 'category_filter': category
+        .rpc('buscar_empresas_por_etiqueta_json', params: {
+      'keyword': searchTerm,
+      if (category != null) 'categoria_nombre': category
     });
     final List<Map<String, dynamic>>? dataS =
         data?.cast<Map<String, dynamic>>();
@@ -45,8 +49,8 @@ class ApiService {
     }
   }
 
-  Future<List<NotificationApp>> getNotifications() async {
+  Future<List<Aviso>> getNotifications() async {
     final data = await supabase.from('app_updates').select();
-    return data.map((json) => NotificationApp.fromJson(json)).toList();
+    return data.map((json) => Aviso.fromJson(json)).toList();
   }
 }
