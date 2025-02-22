@@ -33,7 +33,6 @@ class ProductsProvider with ChangeNotifier {
 
     _isLoadingProducts = true;
     _productsError = null;
-    notifyListeners();
     try {
       print(
           "ProductsProvider.getProducts - Calling _apiService.getProducts..."); // Debug before api call
@@ -55,9 +54,6 @@ class ProductsProvider with ChangeNotifier {
   Future<void> getCategories() async {
     _isLoadingCategories = true;
     _categoriesError = null;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
     try {
       _categories = (await _apiService.getCategories());
     } catch (e) {
@@ -73,7 +69,6 @@ class ProductsProvider with ChangeNotifier {
   Future<void> getNotifications() async {
     _isLoadingNotifications = true;
     _notificationsError = null;
-    notifyListeners();
     try {
       _notifications = await _apiService.getNotifications();
     } catch (e) {

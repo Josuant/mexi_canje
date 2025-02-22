@@ -194,7 +194,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
 
                 // Filtros de categoría
-                if (_index == 0 && !_showCategories)
+                if ((_index == 0) && !_showCategories)
                   Padding(
                     padding: const EdgeInsets.only(top: 5),
                     child: CategoryFilter(
@@ -336,10 +336,6 @@ class HomeScreenState extends State<HomeScreen> {
           _title = "Favoritos";
           _showCategories = false;
           _favorites = true;
-          _filteredProducts = productsProvider.items
-              .where((product) =>
-                  favoriteProvider.favorites.any((p) => p.id == product.id))
-              .toList();
           updateFavoritesFromProvider(); // Refresh favorites status
           break;
         case 2:
@@ -361,10 +357,8 @@ class HomeScreenState extends State<HomeScreen> {
     final favoriteProvider =
         Provider.of<FavoriteProvider>(context, listen: false);
     setState(() {
-      _filteredProducts = _filteredProducts.map((product) {
-        final isFavorite =
-            favoriteProvider.favorites.any((p) => p.id == product.id);
-        return product.copyWith(isFavorite: isFavorite);
+      _filteredProducts = favoriteProvider.favorites.map((product) {
+        return product.copyWith(isFavorite: true);
       }).toList();
     });
   }

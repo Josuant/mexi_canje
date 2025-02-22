@@ -85,14 +85,14 @@ class ApiService {
       }
 
       if (dataS is List) {
-        List<Map<String, String>> categories = (dataS)
-            .cast<Map<String, String>>()
-            .map((category) => {
-                  'nombre_categoria': category['nombre_categoria'] ?? '',
-                  'url_imagen_categoria':
-                      category['url_imagen_categoria'] ?? '',
-                })
-            .toList();
+        List<Map<String, String>> categories =
+            (dataS).asMap().entries.map((entry) {
+          final Map<String, String> category = {};
+          entry.value.forEach((key, value) {
+            category[key.toString()] = value.toString();
+          });
+          return category;
+        }).toList();
         await categoriesBox.put(cacheKey, categories);
         print('Categories fetched from API and cached');
         return categories;
