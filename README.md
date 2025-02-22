@@ -10,6 +10,9 @@
 
 Con MexiCanje, podrás explorar un amplio catálogo de **alternativas 100% mexicanas** en diversas categorías, desde alimentos y bebidas tradicionales hasta tecnología innovadora y moda con diseño nacional.  Nuestra misión es simple:  **conectar a los consumidores conscientes con lo mejor que México tiene para ofrecer, impulsando a productores y emprendedores locales.**
 
+![capturas](https://github.com/user-attachments/assets/a08dffe9-b8db-4bd2-bd90-b18f197fdb0d)
+
+
 ## ¿Por qué elegir MexiCanje?
 
 *   **✅ Encuentra Alternativas Mexicanas:**  Realiza búsquedas intuitivas por nombre de producto o categoría y descubre fácilmente opciones mexicanas equivalentes o superiores a tus marcas internacionales favoritas.
