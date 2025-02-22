@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mexi_canje/utils/constants.dart';
 import 'package:solar_icons/solar_icons.dart';
@@ -20,6 +21,8 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 200.0,
+      width: 500.0,
       padding: const EdgeInsets.all(15.0),
       decoration: AppStyles.mexiDecoration,
       child: Row(
@@ -38,18 +41,23 @@ class ProductCard extends StatelessWidget {
                     padding: const EdgeInsets.all(16.0),
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(10.0),
-                        child: Image.network(product.imageUrl,
-                            errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            product.categories.isNotEmpty
-                                ? AppIcons.categoryIcons[
-                                        product.categories.first] ??
-                                    SolarIconsBold.cupHot
-                                : SolarIconsBold.linkBroken,
-                            size: 50,
-                            color: Colors.grey,
-                          );
-                        })),
+                        child: CachedNetworkImage(
+                            imageUrl: product.imageUrl,
+                            progressIndicatorBuilder:
+                                (context, url, downloadProgress) =>
+                                    CircularProgressIndicator(
+                                        value: downloadProgress.progress),
+                            errorWidget: (context, error, stackTrace) {
+                              return Icon(
+                                product.categories.isNotEmpty
+                                    ? AppIcons.categoryIcons[
+                                            product.categories.first] ??
+                                        SolarIconsBold.cupHot
+                                    : SolarIconsBold.linkBroken,
+                                size: 50,
+                                color: Colors.grey,
+                              );
+                            })),
                   )),
                   Positioned(
                     top: 10,

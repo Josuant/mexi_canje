@@ -23,19 +23,22 @@ dependencies:
   smooth_corner: ^1.1.1
   google_fonts: ^6.2.1
   shimmer: ^3.0.0
+  hive_flutter: ^1.1.0
+  hive: ^2.2.3
+  path_provider: ^2.0.0
+  fast_cached_network_image: ^1.3.1+3
+  visibility_detector: ^0.4.0+2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.0.0
   
 
 flutter:
   uses-material-design: true
   assets:
     - .env
-    - assets/mock_products.json
     - assets/images/empty_list.png
-    - assets/images/card_alimentos.png
-    - assets/images/card_bebidas.png
-    - assets/images/card_calzado.png

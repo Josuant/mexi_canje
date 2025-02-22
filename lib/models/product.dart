@@ -1,10 +1,23 @@
+// models/product.dart
+import 'package:hive/hive.dart';
+
+part 'product.g.dart';
+
+@HiveType(typeId: 0)
 class Product {
+  @HiveField(0)
   final String id;
+  @HiveField(1)
   final String name;
+  @HiveField(2)
   final String imageUrl;
+  @HiveField(3)
   final List<String> categories;
+  @HiveField(4)
   final String website;
+  @HiveField(5)
   final bool? isFavorite;
+  @HiveField(6)
   final String mexicanidad;
 
   Product({
@@ -36,6 +49,7 @@ class Product {
       'url_imagen_empresa': imageUrl,
       'categorias': categories,
       'sitio_web_empresa': website,
+      'mexicanidad': mexicanidad,
     };
   }
 

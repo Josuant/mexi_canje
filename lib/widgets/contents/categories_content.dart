@@ -1,6 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mexi_canje/utils/constants.dart'; // Assuming AppStyles is defined here
-import 'package:mexi_canje/widgets/contents/mexi_content.dart';
 import 'package:smooth_corner/smooth_corner.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -36,33 +36,23 @@ class CategoryImageContainer extends StatelessWidget {
           ),
         ),
         child: imageUrl != null && imageUrl!.isNotEmpty
-            ? Image.network(
-                imageUrl!,
+            ? CachedNetworkImage(
                 fit: BoxFit.fill,
-                errorBuilder: (context, error, stackTrace) {
+                errorWidget: (context, error, stackTrace) {
                   return Center(
                     child: Text(categoryName!),
                   );
                 },
-                loadingBuilder: (BuildContext context, Widget child,
-                    ImageChunkEvent? loadingProgress) {
-                  if (loadingProgress == null) {
-                    return child;
-                  }
+                progressIndicatorBuilder: (context, url, downloadProgress) {
                   return Stack(
                     // Overlay shimmer effect while loading
                     fit: StackFit.expand,
                     children: [
-                      _buildShimmerPlaceholder(), // Shimmer placeholder
-                      Opacity(
-                        // Keep the fade-in animation for the actual image
-                        opacity:
-                            0, // Initially hide the image, fade in on frame
-                        child: child,
-                      ),
+                      _buildShimmerPlaceholder(),
                     ],
                   );
                 },
+                imageUrl: imageUrl!,
               )
             : Center(
                 child: Icon(SolarIconsOutline.linkBroken, color: Colors.grey)),
@@ -81,11 +71,11 @@ class CategoryImageContainer extends StatelessWidget {
   }
 }
 
-class CategoryGrid extends StatelessWidget {
+class CategoriesContent extends StatelessWidget {
   final List<Map<String, String>> categories;
   final Function(bool, int) onCategorySelected;
 
-  const CategoryGrid({
+  const CategoriesContent({
     super.key,
     required this.categories,
     required this.onCategorySelected,
@@ -120,28 +110,5 @@ class CategoryGrid extends StatelessWidget {
         },
       ),
     );
-  }
-}
-
-class CategoriesContent extends MexiContent {
-  final List<Map<String, String>> categories;
-  final Function(bool, int) onCategorySelected;
-
-  const CategoriesContent({
-    required this.categories,
-    required this.onCategorySelected,
-  });
-
-  @override
-  List<Widget> getContents(BuildContext context) {
-    if (categories.isNotEmpty) {
-      return [
-        CategoryGrid(
-          categories: categories,
-          onCategorySelected: onCategorySelected,
-        ),
-      ];
-    }
-    return [];
   }
 }

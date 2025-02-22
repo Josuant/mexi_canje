@@ -36,13 +36,6 @@ class _NativeAdCardState extends State<NativeAdCard> {
   void initState() {
     super.initState();
     _loadAd();
-    widget.productsProvider.addListener(() {
-      if (mounted) {
-        setState(() {
-          _loadAd();
-        });
-      }
-    });
   }
 
   /// Loads a native ad.
@@ -61,6 +54,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
           onAdFailedToLoad: (ad, error) {
             // Dispose the ad here to free resources.
             _isAdLoaded = false;
+            dispose();
           },
           // Called when a click is recorded for a NativeAd.
           onAdClicked: (ad) {},
@@ -108,7 +102,6 @@ class _NativeAdCardState extends State<NativeAdCard> {
 
   @override
   void dispose() {
-    _nativeAd?.dispose();
     super.dispose();
   }
 
@@ -123,9 +116,9 @@ class _NativeAdCardState extends State<NativeAdCard> {
         maxWidth: 400,
         maxHeight: 200,
       ),
-      child: _nativeAd != null && _isAdLoaded
+      child: _isAdLoaded
           ? AdWidget(ad: _nativeAd!)
-          : _isAdLoaded == false
+          : _nativeAd != null
               ? const Center(
                   child: CircularProgressIndicator(),
                 )

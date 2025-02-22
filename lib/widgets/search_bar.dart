@@ -5,12 +5,14 @@ import 'package:solar_icons/solar_icons.dart';
 class MexiSearchBar extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final Function(String) onSubmitted;
   final String hintText;
 
   const MexiSearchBar({
     super.key,
     required this.controller,
     required this.onChanged,
+    required this.onSubmitted,
     this.hintText = 'Algo dulce...',
   });
 
@@ -35,6 +37,7 @@ class MexiSearchBar extends StatelessWidget {
         fillColor: Colors.white,
       ),
       onChanged: onChanged,
+      onSubmitted: onSubmitted,
     );
   }
 }
