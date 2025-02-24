@@ -1,6 +1,6 @@
 # MexiCanje - Tu Guía de Alternativas 100% Mexicanas 🇲🇽✨
 
-![ic_launcher](https://github.com/user-attachments/assets/e5a9c390-b9c4-484c-ae21-d178becc72ca)
+![ic_launcher](https://github.com/user-attachments/assets/8a5d830a-3d8f-4f22-bcee-49d38b06ea87)
 
 [Mexicanje.info](https://mexicanje.info/)
 
